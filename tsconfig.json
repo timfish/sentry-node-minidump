@@ -1,0 +1,12 @@
+{
+    "include": ["index.ts", "reporter.ts"],
+    "exclude": ["node_modules"],
+    "compilerOptions": {
+        "declaration": true,
+        "outDir": ".",
+        "lib": ["ES2019"],
+        "module": "ESNext",
+        "target": "ES2020",
+        "moduleResolution": "Node"
+    }
+}

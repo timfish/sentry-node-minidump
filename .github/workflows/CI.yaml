@@ -1,0 +1,157 @@
+name: CI
+env:
+  DEBUG: napi:*
+  APP_NAME: sentry-node-minidump
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: windows-latest
+            build: yarn build
+            target: x86_64-pc-windows-msvc
+          - host: windows-latest
+            build: |
+              export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=32;
+              export CARGO_PROFILE_RELEASE_LTO=false
+              yarn build --target i686-pc-windows-msvc
+            target: i686-pc-windows-msvc
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            build: yarn build --target aarch64-pc-windows-msvc
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              yarn build
+              strip -x *.node
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              yarn build --target=aarch64-apple-darwin
+              strip -x *.node
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install libudev-dev -y
+            build: |
+              yarn build 
+              strip sentry-node-minidump.linux-x64-gnu.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            setup: |
+              sudo dpkg --add-architecture arm64
+              sudo cp /etc/apt/sources.list /etc/apt/sources.list.old
+              printf "deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal main multiverse restricted universe \ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main multiverse restricted universe \ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main multiverse restricted universe\ndeb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal-updates main multiverse restricted universe\ndeb [arch=amd64] http://security.ubuntu.com/ubuntu/ focal-security main multiverse restricted universe" | sudo tee /etc/apt/sources.list
+              sudo apt-get update
+              sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libudev-dev:arm64 -y
+            build: |
+              export PKG_CONFIG_ALLOW_CROSS=1
+              export PKG_CONFIG_PATH='/usr/lib/aarch64-linux-gnu/pkgconfig'
+              yarn build --target=aarch64-unknown-linux-gnu
+              aarch64-linux-gnu-strip sentry-node-minidump.linux-arm64-gnu.node
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            setup: |
+              sudo dpkg --add-architecture armhf
+              sudo sed -i "s/deb h/deb [arch=amd64] h/g" /etc/apt/sources.list
+              printf "deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal main multiverse restricted universe \ndeb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ focal main multiverse restricted universe \ndeb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main multiverse restricted universe\ndeb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal-updates main multiverse restricted universe\ndeb [arch=amd64] http://security.ubuntu.com/ubuntu/ focal-security main multiverse restricted universe" | sudo tee /etc/apt/sources.list
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libudev-dev:armhf -y
+            build: |
+              export PKG_CONFIG_ALLOW_CROSS=1
+              export PKG_CONFIG_PATH='/usr/lib/arm-linux-gnueabihf/pkgconfig'
+              yarn build --target=armv7-unknown-linux-gnueabihf
+              arm-linux-gnueabihf-strip sentry-node-minidump.linux-arm-gnueabihf.node
+
+    name: ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          check-latest: true
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+      - name: Generate Cargo.lock
+        uses: actions-rs/cargo@v1
+        with:
+          command: generate-lockfile
+      - name: Setup toolchain
+        run: ${{ matrix.settings.setup }}
+        if: ${{ matrix.settings.setup }}
+        shell: bash
+      - name: Install dependencies
+        run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        shell: bash
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: ${{ env.APP_NAME }}.*.node
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          check-latest: true
+
+      - name: Install dependencies
+        run: yarn install --network-timeout 300000
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: artifacts
+          path: ./
+
+      - name: Publish Dry Run
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+          npm publish --dry-run --access public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish 
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+          npm publish --access public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,13 @@
+*.log
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+*.tsbuildinfo
+/target
+*.node
+bindings.*
+index.d.ts
+index.cjs
+index.mjs
+reporter.mjs
+reporter.d.ts

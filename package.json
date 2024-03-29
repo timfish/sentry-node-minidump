@@ -1,0 +1,79 @@
+{
+  "name": "sentry-node-minidump",
+  "version": "0.0.1",
+  "description": "Capture native crashes as minidumps with the Sentry Node SDK",
+  "main": "./index.cjs",
+  "repository": "git@github.com:timfish/sentry-node-minidump.git",
+  "license": "MIT",
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "bindings.cjs",
+    "index.cjs",
+    "index.mjs",
+    "index.d.ts",
+    "reporter.mjs",
+    "*.node"
+  ],
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.cjs"
+    }
+  },
+  "napi": {
+    "name": "sentry-node-minidump",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "i686-pc-windows-msvc",
+        "aarch64-unknown-linux-gnu",
+        "armv7-unknown-linux-gnueabihf",
+        "aarch64-apple-darwin",
+        "aarch64-pc-windows-msvc"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "build": "npm run build:native && npm run build:javascript",
+    "build:native": "napi build --platform --release --js bindings.cjs --dts bindings.d.ts",
+    "build:javascript": "rollup -c rollup.config.mjs",
+    "build:debug": "napi build --platform",
+    "test": "node ./test.js"
+  },
+  "dependencies": {
+    "@sentry/node": "^7.109.0",
+    "@sentry/core": "^7.109.0",
+    "@sentry/utils": "^7.109.0",
+    "@sentry/types": "^7.109.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.11.30",
+    "@napi-rs/cli": "^2.18.0",
+    "prettier": "^3.2.5",
+    "rollup": "^4.13.2",
+    "tslib": "^2.6.2",
+    "typescript": "4.9.5"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "trailingComma": "all",
+    "singleQuote": true,
+    "arrowParens": "always",
+    "parser": "typescript"
+  },
+  "volta": {
+    "node": "20.12.0"
+  }
+}

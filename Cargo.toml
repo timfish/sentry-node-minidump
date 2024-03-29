@@ -1,0 +1,22 @@
+[package]
+authors = ["Tim Fish <tim@timfish.uk>"]
+edition = "2018"
+name = "sentry-node-minidump"
+version = "0.0.1"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+minidumper-child = "0.2.2"
+napi = {version = "2.16.1", features = ["async", "napi5"]}
+napi-derive = {version = "2.16.1"}
+thiserror = "1"
+uuid = {version = "1", features = ["v4"]}
+
+[build-dependencies]
+napi-build = "2.0"
+
+[profile.release]
+codegen-units = 1
+lto = true
