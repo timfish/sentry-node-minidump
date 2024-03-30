@@ -8,15 +8,22 @@ import { readFileSync } from 'node:fs';
 
 // Read the config from stdin
 const json = readFileSync(process.stdin.fd, 'utf-8');
-const { dsn, metadata, tunnel, eventDefaults, socketName } = JSON.parse(json) as {
+const { dsn, sdkMetadata, tunnel, eventDefaults, socketName, debug } = JSON.parse(json) as {
+  debug: boolean;
   dsn: DsnComponents;
-  metadata: SdkMetadata;
+  sdkMetadata: SdkMetadata;
   tunnel: string | undefined;
   eventDefaults: Event;
   socketName: string;
 };
 
-function createMinidumpEventEnvelope(dump: ArrayBuffer): Envelope {
+function log(...args: unknown[]) {
+  if (debug) console.log('[sentry-node-minidump]:', ...args);
+}
+
+log('Reporter process starting');
+
+function createMinidumpEventEnvelope(data: string | Uint8Array): Envelope {
   const event: Event = {
     event_id: uuid4(),
     level: 'fatal',
@@ -24,12 +31,12 @@ function createMinidumpEventEnvelope(dump: ArrayBuffer): Envelope {
     ...eventDefaults,
   };
 
-  let env = createEventEnvelope(event, dsn, metadata, tunnel);
+  let env = createEventEnvelope(event, dsn, sdkMetadata, tunnel);
 
   env = addItemToEnvelope(
     env,
     createAttachmentEnvelopeItem({
-      data: new Uint8Array(dump),
+      data,
       filename: 'minidump.dmp',
       attachmentType: 'event.minidump',
     }),
@@ -38,9 +45,9 @@ function createMinidumpEventEnvelope(dump: ArrayBuffer): Envelope {
   return env;
 }
 
-startCrashReporterServer(socketName, tmpdir(), 3000, (err, dump) => {
+startCrashReporterServer(socketName, tmpdir(), 3000, (err: Error, dump: ArrayBuffer) => {
   if (err) {
-    console.error('Failed to start crash reporter server:', err);
+    log('Failed to start crash reporter server:', err);
     return;
   }
 
@@ -52,6 +59,16 @@ startCrashReporterServer(socketName, tmpdir(), 3000, (err, dump) => {
     },
   });
 
-  const envelope = createMinidumpEventEnvelope(dump);
-  transport.send(envelope);
+  const envelope = createMinidumpEventEnvelope(new Uint8Array(dump));
+
+  log('Sending minidump envelope');
+
+  transport.send(envelope).then(
+    () => {
+      log(`Envelope successfully sent to ${url}`);
+    },
+    (error) => {
+      log(`Failed to send envelope to ${url}`, error);
+    },
+  );
 });

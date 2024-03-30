@@ -5,7 +5,7 @@
   "main": "./index.cjs",
   "repository": "git@github.com:timfish/sentry-node-minidump.git",
   "license": "MIT",
-  "types": "index.d.ts",
+  "types": "./index.d.ts",
   "files": [
     "index.d.ts",
     "bindings.cjs",
@@ -18,7 +18,12 @@
   "exports": {
     ".": {
       "import": "./index.mjs",
-      "require": "./index.cjs"
+      "require": "./index.cjs",
+      "types": "./index.d.ts"
+    },
+    "./bindings": {
+      "require": "./bindings.cjs",
+      "types": "./bindings.d.ts"
     }
   },
   "napi": {
@@ -46,23 +51,26 @@
     "build:native": "napi build --platform --release --js bindings.cjs --dts bindings.d.ts",
     "build:javascript": "rollup -c rollup.config.mjs",
     "build:debug": "napi build --platform",
-    "test": "node ./test.js"
+    "test": "vitest"
   },
   "dependencies": {
-    "@sentry/node": "^7.109.0",
     "@sentry/core": "^7.109.0",
-    "@sentry/utils": "^7.109.0",
-    "@sentry/types": "^7.109.0"
+    "@sentry/node": "^7.109.0",
+    "@sentry/types": "^7.109.0",
+    "@sentry/utils": "^7.109.0"
   },
   "devDependencies": {
+    "@napi-rs/cli": "^2.18.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
-    "@napi-rs/cli": "^2.18.0",
+    "express": "^4.19.2",
     "prettier": "^3.2.5",
     "rollup": "^4.13.2",
     "tslib": "^2.6.2",
-    "typescript": "4.9.5"
+    "typescript": "4.9.5",
+    "vitest": "^1.4.0"
   },
   "prettier": {
     "printWidth": 100,
