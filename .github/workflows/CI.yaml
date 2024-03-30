@@ -84,7 +84,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: ${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
 
   publish:
@@ -110,7 +110,6 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: artifacts
           path: ./
 
       - name: Publish Dry Run

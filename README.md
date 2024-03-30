@@ -1,5 +1,8 @@
 # sentry-node-minidump
 
+If you use native Node modules, you may want to capture minidumps to Sentry if
+they segfault. 
+
 This package provides a Sentry integration for the Node SDK that captures and
 sends minidumps when the process crashes.
 
