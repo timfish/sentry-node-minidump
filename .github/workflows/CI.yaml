@@ -108,6 +108,7 @@ jobs:
         with:
           pattern: artifact-*
           path: ./
+          merge-multiple: true
 
       - name: Build JavaScript
         run: yarn build:javascript
