@@ -25,7 +25,7 @@ async function getContexts(client: NodeClient): Promise<Contexts> {
     event = await processor(event, eventHint);
   }
 
-  // Test will change and we don't push updates to the child process
+  // These will change and we don't push updates to the child process
   delete event.contexts.app?.app_memory;
   delete event.contexts.device?.free_memory;
 
@@ -61,11 +61,22 @@ async function start(client: NodeClient) {
   const reporterPath = resolve(dirname(fileURLToPath(import.meta.url)), 'reporter.mjs');
 
   // Spawn node and pipe the config
-  const child = spawn(process.execPath, [reporterPath]);
-  child.stdout.pipe(process.stdout);
-  child.stderr.pipe(process.stderr);
+  const child = spawn(process.execPath, [reporterPath], { detached: true });
+  child.unref();
+
+  if (process.platform === 'darwin') {
+    child.stdout.pipe(process.stdout);
+    child.stderr.pipe(process.stderr);
+  }
+
   child.stdin.write(JSON.stringify(variables));
   child.stdin.end(() => {
+    // On Windows and Linux, we need to destroy stdin otherwise the child
+    // process will be killed when this process crashes
+    if (process.platform !== 'darwin') {
+      child.stdin.destroy();
+    }
+
     // On Windows we need to wait until the next tick otherwise hookCrashSignals
     // blocks the child process stdin from completing
     setImmediate(() => {
