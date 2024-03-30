@@ -5,8 +5,8 @@ sends minidumps when the process crashes.
 
 ```ts
 import * as Sentry from '@sentry/node';
-import { nodeMinidumpIntegration } from 'sentry-node-minidump';
-import { raiseSegfault } from 'sadness-generator';
+import { nodeMinidumpIntegration, causeCrash } from 'sentry-node-minidump';
+
 
 Sentry.init({
   dsn: '__DSN__',

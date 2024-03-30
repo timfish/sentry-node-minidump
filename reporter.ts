@@ -16,7 +16,7 @@ const { dsn, metadata, tunnel, eventDefaults, socketName } = JSON.parse(json) as
   socketName: string;
 };
 
-function createMinidumpEnvelope(dump: ArrayBuffer): Envelope {
+function createMinidumpEventEnvelope(dump: ArrayBuffer): Envelope {
   const event: Event = {
     event_id: uuid4(),
     level: 'fatal',
@@ -52,6 +52,6 @@ startCrashReporterServer(socketName, tmpdir(), 3000, (err, dump) => {
     },
   });
 
-  const envelope = createMinidumpEnvelope(dump);
+  const envelope = createMinidumpEventEnvelope(dump);
   transport.send(envelope);
 });

@@ -74,6 +74,8 @@ pub fn hook_crash_signals(
         )
     })?;
 
+    // Rather than returning a reference which might get GC'd, we forget the
+    // handler so that it's never dropped.
     mem::forget(handler);
 
     Ok(())

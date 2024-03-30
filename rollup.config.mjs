@@ -1,5 +1,4 @@
 import resolve from '@rollup/plugin-node-resolve';
-// import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
@@ -26,20 +25,12 @@ function getBuild(format, input, external = []) {
       moduleSideEffects: false,
     },
     external: [path.resolve('./bindings.cjs'), ...external],
-    plugins: [
-      resolve(),
-      typescript({ outDir: '.', tsconfig: './tsconfig.json' }),
-      // terser({
-      //   ecma: 2016,
-      //   compress: true,
-      //   mangle: false,
-      // }),
-    ],
+    plugins: [resolve(), typescript({ outDir: '.', tsconfig: './tsconfig.json' })],
   };
 }
 
 export default [
   getBuild('cjs', 'index.ts', external),
   getBuild('esm', 'index.ts', external, './dist/esm'),
-  getBuild('esm', 'reporter.ts', './dist/esm'),
+  getBuild('esm', 'reporter.ts', external, './dist/esm'),
 ];

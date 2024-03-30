@@ -3,14 +3,18 @@ import type { NodeClient } from '@sentry/node';
 import type { Contexts, EventHint, Event } from '@sentry/types';
 import { uuid4 } from '@sentry/utils';
 import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
-import { hookCrashSignals } from './bindings.cjs';
+import { hookCrashSignals, causeCrash as crash } from './bindings.cjs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 
+export function causeCrash(): void {
+  crash();
+}
+
 /**
- * Gets contexts by calling all event processors. This shouldn't be called until all integrations are setup
+ * Gets contexts by calling all event processors. This shouldn't be called until
+ * all integrations are setup
  */
 async function getContexts(client: NodeClient): Promise<Contexts> {
   let event: Event | null = {};
@@ -24,7 +28,7 @@ async function getContexts(client: NodeClient): Promise<Contexts> {
   return event?.contexts || {};
 }
 
-async function startMinidump(client: NodeClient) {
+async function start(client: NodeClient) {
   const socketName = join(tmpdir(), uuid4());
 
   const eventDefaults: Event = {
@@ -62,7 +66,7 @@ export const nodeMinidumpIntegration = defineIntegration(() => {
     },
     setup(client: NodeClient) {
       // Wait until all other integrations are setup in the next tick
-      setImmediate(() => startMinidump(client));
+      setImmediate(() => start(client));
     },
   };
 });
