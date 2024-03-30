@@ -22,7 +22,7 @@ jobs:
       matrix:
         settings:
           - host: windows-latest
-            build: yarn build
+            build: yarn build:native
             target: x86_64-pc-windows-msvc
           - host: windows-latest
             build: |
@@ -36,12 +36,12 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build
+              yarn build:native
               strip -x *.node
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
-              yarn build --target=aarch64-apple-darwin
+              yarn build:native --target=aarch64-apple-darwin
               strip -x *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
@@ -56,10 +56,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - name: Docker
-        run: docker run --rm --privileged multiarch/qemu-user-static:register--reset
-        if: ${{ matrix.settings.docker }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -85,7 +82,7 @@ jobs:
         run: ${{ matrix.settings.build }}
         shell: bash
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: ${{ env.APP_NAME }}.*.node
@@ -97,7 +94,7 @@ jobs:
       - build
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -107,8 +104,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --network-timeout 300000
 
+      - name: Build JavaScript
+        run: yarn build:javascript
+
       - name: Download all artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: artifacts
           path: ./
