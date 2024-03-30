@@ -33,7 +33,7 @@ async function getContexts(client: NodeClient): Promise<Contexts> {
 }
 
 async function start(client: NodeClient) {
-  const socketName = join(tmpdir(), uuid4());
+  const socketName = process.platform === 'linux' ? uuid4() : join(tmpdir(), uuid4());
 
   const initOptions = client.getOptions();
 
