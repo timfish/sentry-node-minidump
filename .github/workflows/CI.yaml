@@ -45,9 +45,6 @@ jobs:
               strip -x *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            setup: |
-              sudo apt-get update
-              sudo apt-get install libudev-dev -y
             build: |
               yarn build 
               strip sentry-node-minidump.linux-x64-gnu.node
@@ -110,6 +107,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: '*.node'
           path: ./
 
       - name: Publish Dry Run
