@@ -109,13 +109,15 @@ jobs:
             index.mjs
             index.d.ts
             reporter.mjs
+
   test:
     strategy:
       fail-fast: false
-      matrix: [windows-latest, macos-latest, ubuntu-latest]
+      matrix: 
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
-    name: Test ${{ matrix }}
-    runs-on: ${{ matrix }}
+    name: Test ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     needs:
       - build-javascript
     steps:
