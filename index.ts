@@ -17,7 +17,7 @@ export function causeCrash(): void {
  * all integrations are setup
  */
 async function getContexts(client: NodeClient): Promise<Contexts> {
-  let event: Event | null = {};
+  let event: Event | null = { message: 'test' };
   const eventHint: EventHint = {};
 
   for (const processor of client.getEventProcessors()) {
@@ -66,7 +66,11 @@ async function start(client: NodeClient) {
   child.stderr.pipe(process.stderr);
   child.stdin.write(JSON.stringify(variables));
   child.stdin.end(() => {
-    hookCrashSignals(socketName, 3000, child.pid, 1000);
+    // On Windows we need to wait until the next tick otherwise hookCrashSignals
+    // blocks the child process stdin from completing
+    setImmediate(() => {
+      hookCrashSignals(socketName, 3000, child.pid, 1000);
+    });
   });
 }
 
