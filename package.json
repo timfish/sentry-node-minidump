@@ -32,8 +32,6 @@
       "defaults": true,
       "additional": [
         "i686-pc-windows-msvc",
-        "aarch64-unknown-linux-gnu",
-        "armv7-unknown-linux-gnueabihf",
         "aarch64-apple-darwin",
         "aarch64-pc-windows-msvc"
       ]
@@ -49,7 +47,6 @@
   "scripts": {
     "build": "npm run build:native && npm run build:javascript",
     "build:native": "napi build --platform --release --js bindings.cjs --dts bindings.d.ts",
-    "build:native:linux": "napi build --platform --profile release-linux --js bindings.cjs --dts bindings.d.ts",
     "build:javascript": "rollup -c rollup.config.mjs",
     "build:debug": "napi build --platform",
     "test": "vitest"
