@@ -80,9 +80,11 @@ async function start(client: NodeClient) {
     // On Windows we need to wait until the next tick otherwise hookCrashSignals
     // blocks the child process stdin from completing
     setImmediate(() => {
-      hookCrashSignals(socketName, 3000, child.pid, 1000).catch((err) => {
+      try {
+        hookCrashSignals(socketName, 3000, child.pid, 1000);
+      } catch (err) {
         logger.error('[sentry-node-minidump]: Failed connect to crash reporter process', err);
-      });
+      }
     });
   });
 }

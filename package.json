@@ -49,6 +49,7 @@
   "scripts": {
     "build": "npm run build:native && npm run build:javascript",
     "build:native": "napi build --platform --release --js bindings.cjs --dts bindings.d.ts",
+    "build:native:linux": "napi build --platform --profile release-linux --js bindings.cjs --dts bindings.d.ts",
     "build:javascript": "rollup -c rollup.config.mjs",
     "build:debug": "napi build --platform",
     "test": "vitest"
