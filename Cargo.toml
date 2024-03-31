@@ -6,6 +6,7 @@ version = "0.0.1"
 
 [lib]
 crate-type = ["cdylib"]
+path = "lib.rs"
 
 [dependencies]
 minidumper-child = "0.2.2"
@@ -20,3 +21,8 @@ napi-build = "2.0"
 [profile.release]
 codegen-units = 1
 lto = true
+
+# This is a workaround for a segfault in minidump-writer
+[profile.release-linux]
+inherits = "release"
+opt-level = 1

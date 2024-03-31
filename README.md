@@ -1,5 +1,8 @@
 # sentry-node-minidump
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/timfish/sentry-node-minidump/CI.yaml?style=for-the-badge&label=E2E%20Tests)
+
+
 If you use native Node modules, you may want to capture minidumps to Sentry if
 they segfault. 
 

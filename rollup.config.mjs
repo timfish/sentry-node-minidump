@@ -31,6 +31,6 @@ function getBuild(format, input, external = []) {
 
 export default [
   getBuild('cjs', 'index.ts', external),
-  getBuild('esm', 'index.ts', external, './dist/esm'),
-  getBuild('esm', 'reporter.ts', external, './dist/esm'),
+  getBuild('esm', 'index.ts', external),
+  getBuild('esm', 'reporter.ts', external),
 ];
