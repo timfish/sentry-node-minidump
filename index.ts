@@ -61,7 +61,7 @@ async function start(client: NodeClient) {
   const reporterPath = resolve(dirname(fileURLToPath(import.meta.url)), 'reporter.mjs');
 
   // Spawn node and pipe the config
-  const child = spawn(process.execPath, [reporterPath], { detached: true });
+  const child = spawn(process.execPath, [reporterPath], { detached: true, windowsHide: true });
   child.unref();
 
   if (process.platform === 'darwin') {
@@ -71,7 +71,7 @@ async function start(client: NodeClient) {
 
   child.stdin.write(JSON.stringify(variables));
   child.stdin.end(() => {
-    // On Windows and Linux, we need to destroy stdin otherwise the child
+    // On Windows we need to destroy stdin otherwise the child
     // process will be killed when this process crashes
     if (process.platform !== 'darwin') {
       child.stdin.destroy();
@@ -80,7 +80,9 @@ async function start(client: NodeClient) {
     // On Windows we need to wait until the next tick otherwise hookCrashSignals
     // blocks the child process stdin from completing
     setImmediate(() => {
-      hookCrashSignals(socketName, 3000, child.pid, 1000);
+      hookCrashSignals(socketName, 3000, child.pid, 1000).catch((err) => {
+        logger.error('[sentry-node-minidump]: Failed connect to crash reporter process', err);
+      });
     });
   });
 }
