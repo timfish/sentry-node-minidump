@@ -1,6 +1,6 @@
 {
   "name": "sentry-node-minidump",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Capture native crashes as minidumps with the Sentry Node SDK",
   "main": "./index.cjs",
   "repository": "git@github.com:timfish/sentry-node-minidump.git",
