@@ -45,7 +45,6 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: |
-              export CARGO_PROFILE_RELEASE_OPT_LEVEL=1
               yarn build:native
               strip sentry-node-minidump.linux-x64-gnu.node
 
